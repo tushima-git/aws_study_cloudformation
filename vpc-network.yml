@@ -1,0 +1,179 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Template for VPC Subnet RouteTable IGW VPCEndPoint S3 GateWay
+
+Resources:
+# VPCを作成
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      InstanceTenancy: default
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: AWS-Study-Project
+        - Key: ProjectName
+          Value: SpringBoot-sample-app-project
+
+# IGWの作成
+  VPCInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: AWS-Study-Project-IGW
+        - Key: ProjectName
+          Value: SpringBoot-sample-app-project
+
+# VPCにIGWをアタッチ
+  VPCInternetGatewayAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref VPCInternetGateway
+      VpcId: !Ref VPC
+
+# サブネットの作成
+# パブリックサブネット 2つ作成
+  PublicSubnetAZ1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [ 0, !GetAZs ]
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.0.0/20
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: AWS-Study-Project-PublicSubnetAZ1a
+
+  PublicSubnetAZ1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [ 1, !GetAZs ]
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.16.0/20
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: AWS-Study-Project-PublicSubnetAZ1c
+
+  # プライベートサブネット2つ 作成
+  PrivateSubnetAZ1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [ 0, !GetAZs ]
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.128.0/20
+      Tags:
+        - Key: Name
+          Value: AWS-Study-Project-PrivateSubnetAZ1a
+
+  PrivateSubnetAZ1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [ 1, !GetAZs ]
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.144.0/20
+      Tags:
+        - Key: Name
+          Value: AWS-Study-Project-PrivateSubnetAZ1c
+
+  # パブリックサブネット用のルートテーブルの作成
+  RouteTablePublic:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: AWS-Study-Project-RouteTablePublic
+
+  # IGWへのルーティング
+  RouteTablePublicIGW:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref VPCInternetGateway
+      RouteTableId: !Ref RouteTablePublic
+
+  # パブリックサブネットに紐付け
+  RouteTableAssociationPublic1a:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      SubnetId: !Ref PublicSubnetAZ1a
+
+  RouteTableAssociationPublic1c:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      SubnetId: !Ref PublicSubnetAZ1c
+
+  # プライベートサブネットへのルートテーブルの作成
+  RouteTablePrivate1a:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: AWS-Study-Project-RouteTablePrivate1a
+
+  RouteTablePrivate1c:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: AWS-Study-Project-RouteTablePrivate1c
+
+  # プライベートサブネットに紐付け
+  RouteTableAssociationPrivate1a:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate1a
+      SubnetId: !Ref PrivateSubnetAZ1a
+
+  RouteTableAssociationPrivate1c:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate1c
+      SubnetId: !Ref PrivateSubnetAZ1c
+
+  # VPCエンドポイントの作成　S3ゲートウェイエンドポイント
+  S3GatewayEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VPC
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+      VpcEndpointType: Gateway
+      RouteTableIds:
+        - !Ref RouteTablePrivate1a
+        - !Ref RouteTablePrivate1c
+
+# 外部リソースで参照するための記述
+Outputs:
+  CreateVPCId:
+    Description: The ID of the created VPC Group
+    Value: !Ref VPC
+    Export:
+      Name: "vpc-id"
+  CreatePublicSubnetAZ1aId:
+    Description: The ID of the created PublicSubnet1a
+    Value: !Ref PublicSubnetAZ1a
+    Export:
+      Name: "public-subnet-az-1a"
+  CreatePublicSubnetAZ1cId:
+    Description: The ID of the created PublicSubnet1c
+    Value: !Ref PublicSubnetAZ1c
+    Export:
+      Name: "public-subnet-az-1c"
+  
+  CreatePrivateSubnetAZ1aId:
+    Description: The ID of the created PrivateSubnet1a
+    Value: !Ref PrivateSubnetAZ1a
+    Export:
+      Name: "private-subnet-az-1a"
+  CreatePrivateSubnetAZ1cId:
+    Description: The ID of the created PrivateSubnet1c
+    Value: !Ref PrivateSubnetAZ1c
+    Export:
+      Name: "private-subnet-az-1c"
