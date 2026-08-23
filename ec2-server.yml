@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Template for SSM Connection IAM Role Instance Profile EC2 Server
+
+# SSM接続の設定
+Resources:
+## SSM接続を許可するIAMロールの作成
+  SSMConnectRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  ## SSM接続を許可するIAMロールをEC2にアタッチするためのインスタンスプロファイルを作成
+  SSMInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref SSMConnectRole
+
+  ## EC2インスタンスを作成
+  EC2ServerInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t3.micro
+      ImageId: ami-0f7e90d3283d2e250
+      IamInstanceProfile: !Ref SSMInstanceProfile
+      SubnetId: !ImportValue public-subnet-az-1a
+      SecurityGroupIds: 
+        - !ImportValue ec2-security-group-id
+      PrivateDnsNameOptions:
+        HostnameType: resource-name
+        EnableResourceNameDnsARecord: true
+      DisableApiTermination: true
+      Tags:
+        - Key: Name
+          Value: AWS-Study-Project
+        - Key: ProjectName
+          Value: SpringBoot-sample-app-project
+
+Outputs:
+  CreateEC2serverId:
+    Description: The ID of the created EC2 Server
+    Value: !Ref EC2ServerInstance
+    Export:
+      Name: "ec2-server-id"
