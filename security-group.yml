@@ -1,14 +1,25 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Template for EC2 RDS RoadBalancer Security-Group
 
-Resources:
+  # パラメータを設定
+Parameters:
+  Env:
+    Type: String
+    Default: AWS-Study-CFn
+  ProjectName:
+    Type: String
+    Default: SpringBoot-sample-app-project
+  SpringBootAPPPort:
+    Type: Number
+    Default: 8080
 
-  # ec2SecurityGroup
-  ec2SecurityGroup:
+Resources:
+  # ALBSecurityGroup
+  albSecurityGroup:
     Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupName: EC2-Server-sg
-      GroupDescription: Allow HTTP HTTPS 8080 Port
+    Properties: 
+      GroupName: ALB-sg
+      GroupDescription: Allow HTTP Port
       VpcId: !ImportValue "vpc-id"
       SecurityGroupIngress:
         - IpProtocol: tcp
@@ -19,15 +30,28 @@ Resources:
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8080
-          CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: AWS-Study-Project
-        - Key: ProjectName
-          Value: SpringBoot-sample-app-project
+          Value: !Ref Env
+        - Key: Project
+          Value: !Sub ${ProjectName}-alb-sg
+  # ec2SecurityGroup
+  ec2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: EC2-Server-sg
+      GroupDescription: Allow HTTP HTTPS 8080 Port
+      VpcId: !ImportValue "vpc-id"
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref SpringBootAPPPort
+          ToPort: !Ref SpringBootAPPPort
+          SourceSecurityGroupId: !Ref albSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Ref Env
+        - Key: Project
+          Value: !Sub ${ProjectName}-ec2-sg
 
   # rdsDBSecurityGroup
   rdsDBSecurityGroup:
@@ -43,27 +67,9 @@ Resources:
           SourceSecurityGroupId: !Ref ec2SecurityGroup
       Tags:
         - Key: Name
-          Value: AWS-Study-Project
-        - Key: ProjectName
-          Value: SpringBoot-sample-app-project
-
-  # ALBSecurityGroup
-  albSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties: 
-      GroupName: ALB-sg
-      GroupDescription: Allow HTTP Port
-      VpcId: !ImportValue "vpc-id"
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
-      Tags:
-        - Key: Name
-          Value: AWS-Study-Project
-        - Key: ProjectName
-          Value: SpringBoot-sample-app-project
+          Value: !Ref Env
+        - Key: Project
+          Value: !Sub ${ProjectName}-rds-sg
 
 # 外部リソースで参照するための記述
 Outputs:
