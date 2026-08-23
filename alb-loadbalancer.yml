@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Template for ALB RoadBalancer
+
+# ターゲットグループの作成
+Resources:
+  ALBTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: aws-study-project-tg
+      Tags:
+        - Key: Name
+          Value: AWS-Study-Project
+        - Key: ProjectName
+          Value: SpringBoot-sample-app-project
+      Port: 8080
+      Protocol: HTTP
+      VpcId: !ImportValue  vpc-id
+      TargetType: instance
+      Targets:
+        - Id: !ImportValue  ec2-server-id
+      HealthCheckPath: /
+      HealthCheckPort: 8080
+      Matcher:
+        HttpCode: 200,301
+# ロードバランサーの作成 リスナールールの設定
+  ALBLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Type: "application"
+      Name: ALB-Load-Balancer
+      Scheme: "internet-facing"
+      IpAddressType: ipv4
+      Subnets:
+        - !ImportValue public-subnet-az-1a
+        - !ImportValue public-subnet-az-1c
+      SecurityGroups:
+        - !ImportValue alb-security-group-id
+
+# リスナールール
+  ALBListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTargetGroup
+      LoadBalancerArn: !Ref ALBLoadBalancer
+      Port: 80
+      Protocol: HTTP
