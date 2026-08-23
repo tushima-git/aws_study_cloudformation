@@ -1,0 +1,2 @@
+# aws_study_cloudformation
+awsでspringbootアプリのインフラ環境を構築します
