@@ -1,61 +1,99 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Template for VPC Subnet RouteTable IGW VPCEndPoint S3 GateWay
 
+  # パラメータを設定
+Parameters:
+  Env:
+    Type: String
+    Default: AWS-Study-CFn
+  ProjectName:
+    Type: String
+    Default: SpringBoot-sample-app-project
+  VPCCidrBlock:
+    Description: Setup VPC CidrBlock
+    Type: String
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
+    Default: 10.0.0.0/16
+  PublicSubnetCidrBlockAZ1a:
+    Description: Setup PublicSubnet CidrBlock AZ1a
+    Type: String
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
+    Default: 10.0.0.0/20
+  PublicSubnetCidrBlockAZ1c:
+    Description: Setup PublicSubnet CidrBlock AZ1c
+    Type: String
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
+    Default: 10.0.16.0/20
+  PrivateSubnetCidrBlockAZ1a:
+    Description: Setup PrivateSubnet CidrBlock AZ1a
+    Type: String
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
+    Default: 10.0.128.0/20
+  PrivateSubnetCidrBlockAZ1c:
+    Description: Setup PrivateSubnet CidrBlock AZ1c
+    Type: String
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
+    Default: 10.0.144.0/20
+
 Resources:
-# VPCを作成
+  # VPCを作成
   VPC:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: 10.0.0.0/16
+      CidrBlock: !Ref VPCCidrBlock
       InstanceTenancy: default
       EnableDnsHostnames: true
       EnableDnsSupport: true
       Tags:
         - Key: Name
-          Value: AWS-Study-Project
-        - Key: ProjectName
-          Value: SpringBoot-sample-app-project
+          Value: !Sub ${Env}-vpc
+        - Key: Project
+          Value: !Ref ProjectName
 
-# IGWの作成
+  # IGWの作成
   VPCInternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
       Tags:
         - Key: Name
-          Value: AWS-Study-Project-IGW
-        - Key: ProjectName
-          Value: SpringBoot-sample-app-project
+          Value: !Sub ${Env}-igw
+        - Key: Project
+          Value: !Ref ProjectName
 
-# VPCにIGWをアタッチ
+  # VPCにIGWをアタッチ
   VPCInternetGatewayAttach:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       InternetGatewayId: !Ref VPCInternetGateway
       VpcId: !Ref VPC
 
-# サブネットの作成
-# パブリックサブネット 2つ作成
+  # サブネットの作成
+  # パブリックサブネット 2つ作成
   PublicSubnetAZ1a:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: !Select [ 0, !GetAZs ]
       VpcId: !Ref VPC
-      CidrBlock: 10.0.0.0/20
+      CidrBlock: !Ref PublicSubnetCidrBlockAZ1a
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: AWS-Study-Project-PublicSubnetAZ1a
+          Value: !Sub ${Env}-PublicSubnet-AZ-1a
+        - Key: Project
+          Value: !Ref ProjectName
 
   PublicSubnetAZ1c:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: !Select [ 1, !GetAZs ]
       VpcId: !Ref VPC
-      CidrBlock: 10.0.16.0/20
+      CidrBlock: !Ref PublicSubnetCidrBlockAZ1c
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: AWS-Study-Project-PublicSubnetAZ1c
+          Value: !Sub ${Env}-PublicSubnet-AZ-1c
+        - Key: Project
+          Value: !Ref ProjectName
 
   # プライベートサブネット2つ 作成
   PrivateSubnetAZ1a:
@@ -63,20 +101,24 @@ Resources:
     Properties:
       AvailabilityZone: !Select [ 0, !GetAZs ]
       VpcId: !Ref VPC
-      CidrBlock: 10.0.128.0/20
+      CidrBlock: !Ref PrivateSubnetCidrBlockAZ1a
       Tags:
         - Key: Name
-          Value: AWS-Study-Project-PrivateSubnetAZ1a
+          Value: !Sub ${Env}-PrivateSubnetAZ1a
+        - Key: Project
+          Value: !Ref ProjectName
 
   PrivateSubnetAZ1c:
     Type: AWS::EC2::Subnet
     Properties:
       AvailabilityZone: !Select [ 1, !GetAZs ]
       VpcId: !Ref VPC
-      CidrBlock: 10.0.144.0/20
+      CidrBlock: !Ref PrivateSubnetCidrBlockAZ1c
       Tags:
         - Key: Name
-          Value: AWS-Study-Project-PrivateSubnetAZ1c
+          Value: !Sub ${Env}-PrivateSubnetAZ1c
+        - Key: Project
+          Value: !Ref ProjectName
 
   # パブリックサブネット用のルートテーブルの作成
   RouteTablePublic:
@@ -85,8 +127,9 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: AWS-Study-Project-RouteTablePublic
-
+          Value: !Sub ${Env}-RouteTablePublic
+        - Key: Project
+          Value: !Ref ProjectName
   # IGWへのルーティング
   RouteTablePublicIGW:
     Type: AWS::EC2::Route
@@ -115,15 +158,18 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: AWS-Study-Project-RouteTablePrivate1a
-
+          Value: !Sub ${Env}-RouteTablePrivate1a
+        - Key: Project
+          Value: !Ref ProjectName
   RouteTablePrivate1c:
     Type: AWS::EC2::RouteTable
     Properties:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: AWS-Study-Project-RouteTablePrivate1c
+          Value: !Sub ${Env}-RouteTablePrivate1c
+        - Key: Project
+          Value: !Ref ProjectName
 
   # プライベートサブネットに紐付け
   RouteTableAssociationPrivate1a:
@@ -148,8 +194,12 @@ Resources:
       RouteTableIds:
         - !Ref RouteTablePrivate1a
         - !Ref RouteTablePrivate1c
-
-# 外部リソースで参照するための記述
+      Tags:
+        - Key: Name
+          Value: !Sub ${Env}-VPCEndPoint-S3Gateway
+        - Key: Project
+          Value: !Ref ProjectName
+  # 外部リソースで参照するための記述
 Outputs:
   CreateVPCId:
     Description: The ID of the created VPC Group
