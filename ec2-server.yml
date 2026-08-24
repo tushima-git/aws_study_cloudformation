@@ -1,6 +1,27 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Template for SSM Connection IAM Role Instance Profile EC2 Server
 
+  # パラメータを設定
+Parameters:
+  Env:
+    Type: String
+    Default: AWS-Study-CFn
+  ProjectName:
+    Type: String
+    Default: SpringBoot-sample-app-project
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    # 開発・テスト・検証環境と本番環境用にインスタンスタイプを限定
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - m6g.large
+    Description: Select the EC2 instance type (t3.micro for dev, m6g.large for prod)
+  InstanceImageId:
+    Type: AWS::EC2::Image::Id
+    Default: ami-0f7e90d3283d2e250
+
 # SSM接続の設定
 Resources:
 ## SSM接続を許可するIAMロールの作成
@@ -16,6 +37,11 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags:
+        - Key: Name
+          Value: !Ref Env
+        - Key: Project
+          Value: !Sub ${ProjectName}-ssm-iam-role
 
   ## SSM接続を許可するIAMロールをEC2にアタッチするためのインスタンスプロファイルを作成
   SSMInstanceProfile:
@@ -28,11 +54,11 @@ Resources:
   EC2ServerInstance:
     Type: AWS::EC2::Instance
     Properties:
-      InstanceType: t3.micro
-      ImageId: ami-0f7e90d3283d2e250
+      InstanceType: !Ref InstanceType
+      ImageId: !Ref InstanceImageId
       IamInstanceProfile: !Ref SSMInstanceProfile
       SubnetId: !ImportValue public-subnet-az-1a
-      SecurityGroupIds: 
+      SecurityGroupIds:
         - !ImportValue ec2-security-group-id
       PrivateDnsNameOptions:
         HostnameType: resource-name
@@ -40,9 +66,9 @@ Resources:
       DisableApiTermination: true
       Tags:
         - Key: Name
-          Value: AWS-Study-Project
-        - Key: ProjectName
-          Value: SpringBoot-sample-app-project
+          Value: !Ref Env
+        - Key: Project
+          Value: !Sub ${ProjectName}-ec2-server
 
 Outputs:
   CreateEC2serverId:
