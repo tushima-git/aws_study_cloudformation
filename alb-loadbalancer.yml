@@ -1,7 +1,24 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Template for ALB RoadBalancer
 
-# ターゲットグループの作成
+  # パラメータを設定
+Parameters:
+  Env:
+    Type: String
+    Default: AWS-Study-CFn
+  ProjectName:
+    Type: String
+    Default: SpringBoot-sample-app-project
+  TargetGroupPort:
+    Type: Number
+    Default: 8080
+    Description: SpringBoot APP TargetGroup Port
+  HealthCheckPort:
+    Type: Number
+    Default: 8080
+    Description: SpringBoot APP HealthCheck Port
+
+  # ターゲットグループの作成
 Resources:
   ALBTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -9,20 +26,20 @@ Resources:
       Name: aws-study-project-tg
       Tags:
         - Key: Name
-          Value: AWS-Study-Project
-        - Key: ProjectName
-          Value: SpringBoot-sample-app-project
-      Port: 8080
+          Value: !Ref Env
+        - Key: Project
+          Value: !Sub ${ProjectName}-tg
+      Port: !Ref TargetGroupPort
       Protocol: HTTP
       VpcId: !ImportValue  vpc-id
       TargetType: instance
       Targets:
         - Id: !ImportValue  ec2-server-id
       HealthCheckPath: /
-      HealthCheckPort: 8080
+      HealthCheckPort: !Ref HealthCheckPort
       Matcher:
         HttpCode: 200,301
-# ロードバランサーの作成 リスナールールの設定
+  # ロードバランサーの作成 リスナールールの設定
   ALBLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -35,8 +52,13 @@ Resources:
         - !ImportValue public-subnet-az-1c
       SecurityGroups:
         - !ImportValue alb-security-group-id
+      Tags:
+        - Key: Name
+          Value: !Ref Env
+        - Key: Project
+          Value: !Sub ${ProjectName}-tg
 
-# リスナールール
+  # リスナールール
   ALBListenerRule:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
