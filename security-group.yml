@@ -9,15 +9,16 @@ Parameters:
   ProjectName:
     Type: String
     Default: SpringBoot-sample-app-project
-  SpringBootAPPPort:
+  APPPort:
     Type: Number
     Default: 8080
+    Description: SpringBoot Application Port
 
 Resources:
   # ALBSecurityGroup
   albSecurityGroup:
     Type: AWS::EC2::SecurityGroup
-    Properties: 
+    Properties:
       GroupName: ALB-sg
       GroupDescription: Allow HTTP Port
       VpcId: !ImportValue "vpc-id"
@@ -40,12 +41,12 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupName: EC2-Server-sg
-      GroupDescription: Allow HTTP HTTPS 8080 Port
+      GroupDescription: Allow ALB SecurityGroup
       VpcId: !ImportValue "vpc-id"
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: !Ref SpringBootAPPPort
-          ToPort: !Ref SpringBootAPPPort
+          FromPort: !Ref APPPort
+          ToPort: !Ref APPPort
           SourceSecurityGroupId: !Ref albSecurityGroup
       Tags:
         - Key: Name
