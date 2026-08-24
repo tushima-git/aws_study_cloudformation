@@ -40,7 +40,7 @@ Resources:
     Type: AWS::RDS::DBParameterGroup
     Properties:
       Description: "Custom Parameter Group for MySQL Log Export"
-      Family: "mysql8.0"
+      Family: "mysql8.4"
       Parameters:
         general_log: "1"
         slow_query_log: "1"
