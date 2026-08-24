@@ -1,6 +1,34 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Template for RDS MySQL DB Server
 
+  # パラメータを設定
+Parameters:
+  Env:
+    Type: String
+    Default: AWS-Study-CFn
+  ProjectName:
+    Type: String
+    Default: SpringBoot-sample-app-project
+  DBInstanceClass:
+    Type: String
+    Default: db.m7g.large
+  AllocatedStorage:
+    Type: Number
+    Default: 20
+  MaxAllocatedStorage:
+    Type: Number
+    Default: 1000
+  DBMasterUsername:
+    Type: String
+    Default: root
+  DBMultiAZ:
+    Type: String
+    Default: "true"
+    AllowedValues: ["true", "false"]
+  DBName:
+    Type: String
+    Default: awsstudy
+
 Resources:
 # 1. カスタムDBパラメーターグループの定義（ログ記録の有効化）
   RDSdbServerParameterGroup:
@@ -55,18 +83,18 @@ Resources:
     UpdateReplacePolicy: Delete
     Type: AWS::RDS::DBInstance
     Properties:
-      MultiAZ: true
+      MultiAZ: !Ref DBMultiAZ
       Engine: mysql
       EngineVersion: 8.4.9
-      DBName: awsstudy
-      MasterUsername: root
+      DBName: !Ref DBName
+      MasterUsername: !Ref DBMasterUsername
       MasterUserPassword: !Sub '{{resolve:secretsmanager:${RDSPasswordSecret}:SecretString:password}}'
-      DBInstanceClass: db.m7g.large
+      DBInstanceClass: !Ref DBInstanceClass
       Port: 3306
       PubliclyAccessible: false
       StorageType: gp3
-      AllocatedStorage: 20
-      MaxAllocatedStorage: 1000
+      AllocatedStorage: !Ref AllocatedStorage
+      MaxAllocatedStorage: !Ref MaxAllocatedStorage
       VPCSecurityGroups:
         - !ImportValue rds-security-group-id
       DBSubnetGroupName: !Ref rdsMySQLdbServerSubnetGroup
@@ -83,8 +111,6 @@ Resources:
       DeletionProtection: true
       Tags:
         - Key: Name
-          Value: AWS-Study-Project
-        - Key: ProjectName
-          Value: SpringBoot-sample-app-project
-
-
+          Value: !Ref Env
+        - Key: Project
+          Value: !Sub ${ProjectName}-rds-server
