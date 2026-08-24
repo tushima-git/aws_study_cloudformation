@@ -52,7 +52,8 @@ git clone https://github.com/koujienami/aws-study.git
 # aws-study ディレクトリ内で
 mkdir backup
 
-cp ~/home/ec2-user/aws-study/src/main/resources/application.properties ~/home/ec2-user/aws-study/application.properties_backup
+cp ~/home/ec2-user/aws-study/src/main/resources/application.properties
+~/home/ec2-user/aws-study/application.properties_backup
 
 # ~/home/ec2-user/aws-study/src/main/resources/application.properties 内の設定
 
