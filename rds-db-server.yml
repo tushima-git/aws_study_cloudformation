@@ -28,6 +28,11 @@ Parameters:
   DBName:
     Type: String
     Default: awsstudy
+  DeletionProtection:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false","Retain"]
+    Description: true is production and dev is Retain and leaning or staging is false
 
 Resources:
 # 1. カスタムDBパラメーターグループの定義（ログ記録の有効化）
@@ -35,7 +40,7 @@ Resources:
     Type: AWS::RDS::DBParameterGroup
     Properties:
       Description: "Custom Parameter Group for MySQL Log Export"
-      Family: "mysql8.4"
+      Family: "mysql8.0"
       Parameters:
         general_log: "1"
         slow_query_log: "1"
@@ -108,7 +113,7 @@ Resources:
         - iam-db-auth-error
         - slowquery
       BackupRetentionPeriod: 1
-      DeletionProtection: true
+      DeletionProtection: !Ref DeletionProtection
       Tags:
         - Key: Name
           Value: !Ref Env
