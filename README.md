@@ -43,8 +43,7 @@ sudo dnf -y install https://dev.mysql.com/get/mysql84-community-release-el9-1.no
 sudo dnf -y install mysql-community-client
 
 # アプリケーションのソースコードをクローン
-git clone
-https://github.com/koujienami/aws-study.git
+git clone https://github.com/koujienami/aws-study.git
 ```
 
 設定ファイルを編集
@@ -55,7 +54,7 @@ mkdir backup
 
 cp ~/home/ec2-user/aws-study/src/main/resources/application.properties ~/home/ec2-user/aws-study/application.properties_backup
 
-~/home/ec2-user/aws-study/src/main/resources/application.properties 内の設定
+# ~/home/ec2-user/aws-study/src/main/resources/application.properties 内の設定
 
 spring.application.name=demo
 spring.datasource.url=jdbc:mysql://<RDSのエンドポイント>:3306/awsstudy
