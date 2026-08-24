@@ -216,7 +216,6 @@ Outputs:
     Value: !Ref PublicSubnetAZ1c
     Export:
       Name: "public-subnet-az-1c"
-  
   CreatePrivateSubnetAZ1aId:
     Description: The ID of the created PrivateSubnet1a
     Value: !Ref PrivateSubnetAZ1a
