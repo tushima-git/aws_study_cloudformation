@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Template for RDS MySQL DB Server
+Description: "Template for RDS MySQL DB Server"
 
   # パラメータを設定
 Parameters:
@@ -23,16 +23,16 @@ Parameters:
     Default: root
   DBMultiAZ:
     Type: String
-    Default: "true"
-    AllowedValues: ["true", "false"]
+    Default: true
+    AllowedValues: [true, false]
   DBName:
     Type: String
     Default: awsstudy
   DeletionProtection:
     Type: String
-    Default: "false"
-    AllowedValues: ["true", "false","Retain"]
-    Description: true is production and dev is Retain and leaning or staging is false
+    Default: false
+    AllowedValues: [true, false]
+    Description: "true is production development or leaning or staging is false"
 
 Resources:
 # 1. カスタムDBパラメーターグループの定義（ログ記録の有効化）
@@ -40,12 +40,12 @@ Resources:
     Type: AWS::RDS::DBParameterGroup
     Properties:
       Description: "Custom Parameter Group for MySQL Log Export"
-      Family: "mysql8.4"
+      Family: mysql8.4
       Parameters:
-        general_log: "1"
-        slow_query_log: "1"
-        long_query_time: "2"
-        log_output: "FILE"
+        general_log: 1
+        slow_query_log: 1
+        long_query_time: 2
+        log_output: FILE
 
 # SecretManagerでパスワード管理 #RDSに接続するためのパスワードをランダム作成
   RDSPasswordSecret:
@@ -54,10 +54,10 @@ Resources:
     UpdateReplacePolicy: Delete
     Properties:
       Name: RDSPasswordSecret
-      Description: Create RDS password for RDS MySQL DB Server
+      Description: "Create RDS password for RDS MySQL DB Server"
       GenerateSecretString:
         SecretStringTemplate: '{"username": "root"}'
-        GenerateStringKey: "password"
+        GenerateStringKey: password
         PasswordLength: 16
         ExcludeCharacters: '"@/\'
 # DBサブネットグループの設定

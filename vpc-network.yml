@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Template for VPC Subnet RouteTable IGW VPCEndPoint S3 GateWay
+Description: "Template for VPC Subnet RouteTable IGW VPCEndPoint S3 GateWay"
 
   # パラメータを設定
 Parameters:
@@ -10,22 +10,22 @@ Parameters:
     Type: String
     Default: SpringBoot-sample-app-project
   VPCCidrBlock:
-    Description: Setup VPC CidrBlock
+    Description: "Setup VPC CidrBlock"
     Type: String
     AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
     Default: 10.0.0.0/16
   PublicSubnetCidrBlockAZ1a:
-    Description: Setup PublicSubnet CidrBlock AZ1a
+    Description: "Setup PublicSubnet CidrBlock AZ1a"
     Type: String
     AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
     Default: 10.0.0.0/20
   PublicSubnetCidrBlockAZ1c:
-    Description: Setup PublicSubnet CidrBlock AZ1c
+    Description: "Setup PublicSubnet CidrBlock AZ1c"
     Type: String
     AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
     Default: 10.0.16.0/20
   PrivateSubnetCidrBlockAZ1a:
-    Description: Setup PrivateSubnet CidrBlock AZ1a
+    Description: "Setup PrivateSubnet CidrBlock AZ1a"
     Type: String
     AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
     Default: 10.0.128.0/20
@@ -202,27 +202,27 @@ Resources:
   # 外部リソースで参照するための記述
 Outputs:
   CreateVPCId:
-    Description: The ID of the created VPC Group
+    Description: "The ID of the created VPC Group"
     Value: !Ref VPC
     Export:
-      Name: "vpc-id"
+      Name: vpc-id
   CreatePublicSubnetAZ1aId:
-    Description: The ID of the created PublicSubnet1a
+    Description: "The ID of the created PublicSubnet1a"
     Value: !Ref PublicSubnetAZ1a
     Export:
-      Name: "public-subnet-az-1a"
+      Name: public-subnet-az-1a
   CreatePublicSubnetAZ1cId:
-    Description: The ID of the created PublicSubnet1c
+    Description: "The ID of the created PublicSubnet1c"
     Value: !Ref PublicSubnetAZ1c
     Export:
-      Name: "public-subnet-az-1c"
+      Name: public-subnet-az-1c
   CreatePrivateSubnetAZ1aId:
-    Description: The ID of the created PrivateSubnet1a
+    Description: "The ID of the created PrivateSubnet1a"
     Value: !Ref PrivateSubnetAZ1a
     Export:
-      Name: "private-subnet-az-1a"
+      Name: private-subnet-az-1a
   CreatePrivateSubnetAZ1cId:
-    Description: The ID of the created PrivateSubnet1c
+    Description: "The ID of the created PrivateSubnet1c"
     Value: !Ref PrivateSubnetAZ1c
     Export:
-      Name: "private-subnet-az-1c"
+      Name: private-subnet-az-1c

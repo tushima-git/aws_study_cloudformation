@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Template for ALB RoadBalancer
+Description: "Template for ALB RoadBalancer"
 
   # パラメータを設定
 Parameters:
@@ -12,11 +12,11 @@ Parameters:
   TargetGroupPort:
     Type: Number
     Default: 8080
-    Description: SpringBoot APP TargetGroup Port
+    Description: "SpringBoot APP TargetGroup Port"
   HealthCheckPort:
     Type: Number
     Default: 8080
-    Description: SpringBoot APP HealthCheck Port
+    Description: "SpringBoot APP HealthCheck Port"
 
   # ターゲットグループの作成
 Resources:
@@ -43,9 +43,9 @@ Resources:
   ALBLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Type: "application"
+      Type: application
       Name: ALB-Load-Balancer
-      Scheme: "internet-facing"
+      Scheme: internet-facing
       IpAddressType: ipv4
       Subnets:
         - !ImportValue public-subnet-az-1a

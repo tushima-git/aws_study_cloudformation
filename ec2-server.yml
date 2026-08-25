@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Template for SSM Connection IAM Role Instance Profile EC2 Server
+Description: "Template for SSM Connection IAM Role Instance Profile EC2 Server"
 
   # パラメータを設定
 Parameters:
@@ -17,7 +17,7 @@ Parameters:
       - t3.micro
       - t3.small
       - m6g.large
-    Description: Select the EC2 instance type (t3.micro for dev, m6g.large for prod)
+    Description: "Select the EC2 instance type (t3.micro for dev, m6g.large for prod)"
   InstanceImageId:
     Type: AWS::EC2::Image::Id
     Default: ami-0f7e90d3283d2e250
@@ -72,7 +72,7 @@ Resources:
 
 Outputs:
   CreateEC2serverId:
-    Description: The ID of the created EC2 Server
+    Description: "The ID of the created EC2 Server"
     Value: !Ref EC2ServerInstance
     Export:
-      Name: "ec2-server-id"
+      Name: ec2-server-id
