@@ -3,12 +3,12 @@ Description: "Template for RDS MySQL DB Server"
 
   # パラメータを設定
 Parameters:
-  Env:
+  InfraName:
     Type: String
     Default: AWS-Study-CFn
   ProjectName:
     Type: String
-    Default: SpringBoot-sample-app-project
+    Default: SpringBoot-sample-app
   DBInstanceClass:
     Type: String
     Default: db.m7g.large
@@ -116,6 +116,6 @@ Resources:
       DeletionProtection: !Ref DeletionProtection
       Tags:
         - Key: Name
-          Value: !Ref Env
+          Value: !Ref InfraName
         - Key: Project
           Value: !Sub ${ProjectName}-rds-server

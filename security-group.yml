@@ -3,12 +3,12 @@ Description: "Template for EC2 RDS RoadBalancer Security-Group"
 
   # パラメータを設定
 Parameters:
-  Env:
+  InfraName:
     Type: String
     Default: AWS-Study-CFn
   ProjectName:
     Type: String
-    Default: SpringBoot-sample-app-project
+    Default: SpringBoot-sample-app
   APPPort:
     Type: Number
     Default: 8080
@@ -33,7 +33,7 @@ Resources:
           CidrIp: 0.0.0.0/0
       Tags:
         - Key: Name
-          Value: !Ref Env
+          Value: !Ref InfraName
         - Key: Project
           Value: !Sub ${ProjectName}-alb-sg
   # ec2SecurityGroup
@@ -50,7 +50,7 @@ Resources:
           SourceSecurityGroupId: !Ref albSecurityGroup
       Tags:
         - Key: Name
-          Value: !Ref Env
+          Value: !Ref InfraName
         - Key: Project
           Value: !Sub ${ProjectName}-ec2-sg
 
@@ -68,7 +68,7 @@ Resources:
           SourceSecurityGroupId: !Ref ec2SecurityGroup
       Tags:
         - Key: Name
-          Value: !Ref Env
+          Value: !Ref InfraName
         - Key: Project
           Value: !Sub ${ProjectName}-rds-sg
 

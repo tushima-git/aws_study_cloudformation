@@ -3,12 +3,12 @@ Description: "Template for SSM Connection IAM Role Instance Profile EC2 Server"
 
   # パラメータを設定
 Parameters:
-  Env:
+  InfraName:
     Type: String
     Default: AWS-Study-CFn
   ProjectName:
     Type: String
-    Default: SpringBoot-sample-app-project
+    Default: SpringBoot-sample-app
   InstanceType:
     Type: String
     Default: t3.micro
@@ -39,7 +39,7 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
       Tags:
         - Key: Name
-          Value: !Ref Env
+          Value: !Ref InfraName
         - Key: Project
           Value: !Sub ${ProjectName}-ssm-iam-role
 
@@ -66,7 +66,7 @@ Resources:
       DisableApiTermination: true
       Tags:
         - Key: Name
-          Value: !Ref Env
+          Value: !Ref InfraName
         - Key: Project
           Value: !Sub ${ProjectName}-ec2-server
 

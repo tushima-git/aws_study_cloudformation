@@ -3,12 +3,12 @@ Description: "Template for VPC Subnet RouteTable IGW VPCEndPoint S3 GateWay"
 
   # パラメータを設定
 Parameters:
-  Env:
+  InfraName:
     Type: String
     Default: AWS-Study-CFn
   ProjectName:
     Type: String
-    Default: SpringBoot-sample-app-project
+    Default: SpringBoot-sample-app
   VPCCidrBlock:
     Description: "Setup VPC CidrBlock"
     Type: String
@@ -46,7 +46,7 @@ Resources:
       EnableDnsSupport: true
       Tags:
         - Key: Name
-          Value: !Sub ${Env}-vpc
+          Value: !Sub ${InfraName}-vpc
         - Key: Project
           Value: !Ref ProjectName
 
@@ -56,7 +56,7 @@ Resources:
     Properties:
       Tags:
         - Key: Name
-          Value: !Sub ${Env}-igw
+          Value: !Sub ${InfraName}-igw
         - Key: Project
           Value: !Ref ProjectName
 
@@ -78,7 +78,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub ${Env}-PublicSubnet-AZ-1a
+          Value: !Sub ${InfraName}-PublicSubnet-AZ-1a
         - Key: Project
           Value: !Ref ProjectName
 
@@ -91,7 +91,7 @@ Resources:
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
-          Value: !Sub ${Env}-PublicSubnet-AZ-1c
+          Value: !Sub ${InfraName}-PublicSubnet-AZ-1c
         - Key: Project
           Value: !Ref ProjectName
 
@@ -104,7 +104,7 @@ Resources:
       CidrBlock: !Ref PrivateSubnetCidrBlockAZ1a
       Tags:
         - Key: Name
-          Value: !Sub ${Env}-PrivateSubnetAZ1a
+          Value: !Sub ${InfraName}-PrivateSubnetAZ1a
         - Key: Project
           Value: !Ref ProjectName
 
@@ -116,7 +116,7 @@ Resources:
       CidrBlock: !Ref PrivateSubnetCidrBlockAZ1c
       Tags:
         - Key: Name
-          Value: !Sub ${Env}-PrivateSubnetAZ1c
+          Value: !Sub ${InfraName}-PrivateSubnetAZ1c
         - Key: Project
           Value: !Ref ProjectName
 
@@ -127,7 +127,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub ${Env}-RouteTablePublic
+          Value: !Sub ${InfraName}-RouteTablePublic
         - Key: Project
           Value: !Ref ProjectName
   # IGWへのルーティング
@@ -158,7 +158,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub ${Env}-RouteTablePrivate1a
+          Value: !Sub ${InfraName}-RouteTablePrivate1a
         - Key: Project
           Value: !Ref ProjectName
   RouteTablePrivate1c:
@@ -167,7 +167,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: !Sub ${Env}-RouteTablePrivate1c
+          Value: !Sub ${InfraName}-RouteTablePrivate1c
         - Key: Project
           Value: !Ref ProjectName
 
@@ -196,7 +196,7 @@ Resources:
         - !Ref RouteTablePrivate1c
       Tags:
         - Key: Name
-          Value: !Sub ${Env}-VPCEndPoint-S3Gateway
+          Value: !Sub ${InfraName}-VPCEndPoint-S3Gateway
         - Key: Project
           Value: !Ref ProjectName
   # 外部リソースで参照するための記述
