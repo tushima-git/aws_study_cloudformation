@@ -23,15 +23,15 @@ Parameters:
     Default: root
   DBMultiAZ:
     Type: String
-    Default: true
-    AllowedValues: [true, false]
+    Default: "true"
+    AllowedValues: ["true", "false"]
   DBName:
     Type: String
     Default: awsstudy
   DeletionProtection:
     Type: String
-    Default: false
-    AllowedValues: [true, false]
+    Default: "false"
+    AllowedValues: ["true", "false"]
     Description: "true is production development or leaning or staging is false"
 
 Resources:
@@ -96,7 +96,7 @@ Resources:
       MasterUserPassword: !Sub '{{resolve:secretsmanager:${RDSPasswordSecret}:SecretString:password}}'
       DBInstanceClass: !Ref DBInstanceClass
       Port: 3306
-      PubliclyAccessible: false
+      PubliclyAccessible: "false"
       StorageType: gp3
       AllocatedStorage: !Ref AllocatedStorage
       MaxAllocatedStorage: !Ref MaxAllocatedStorage

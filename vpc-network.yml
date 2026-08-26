@@ -42,8 +42,8 @@ Resources:
     Properties:
       CidrBlock: !Ref VPCCidrBlock
       InstanceTenancy: default
-      EnableDnsHostnames: true
-      EnableDnsSupport: true
+      EnableDnsHostnames: "true"
+      EnableDnsSupport: "true"
       Tags:
         - Key: Name
           Value: !Sub ${InfraName}-vpc
@@ -75,7 +75,7 @@ Resources:
       AvailabilityZone: !Select [ 0, !GetAZs ]
       VpcId: !Ref VPC
       CidrBlock: !Ref PublicSubnetCidrBlockAZ1a
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: "true"
       Tags:
         - Key: Name
           Value: !Sub ${InfraName}-PublicSubnet-AZ-1a
@@ -88,7 +88,7 @@ Resources:
       AvailabilityZone: !Select [ 1, !GetAZs ]
       VpcId: !Ref VPC
       CidrBlock: !Ref PublicSubnetCidrBlockAZ1c
-      MapPublicIpOnLaunch: true
+      MapPublicIpOnLaunch: "true"
       Tags:
         - Key: Name
           Value: !Sub ${InfraName}-PublicSubnet-AZ-1c

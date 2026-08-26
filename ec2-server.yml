@@ -62,8 +62,8 @@ Resources:
         - !ImportValue ec2-security-group-id
       PrivateDnsNameOptions:
         HostnameType: resource-name
-        EnableResourceNameDnsARecord: true
-      DisableApiTermination: true
+        EnableResourceNameDnsARecord: "true"
+      DisableApiTermination: "true"
       Tags:
         - Key: Name
           Value: !Ref InfraName
