@@ -1,0 +1,91 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Template for EC2 RDS RoadBalancer Security-Group"
+
+  # パラメータを設定
+Parameters:
+  InfraName:
+    Type: String
+    Default: AWS-Study-CFn
+  ProjectName:
+    Type: String
+    Default: SpringBoot-sample-app
+  APPPort:
+    Type: Number
+    Default: 8080
+    Description: "SpringBoot Application Port"
+
+Resources:
+  # ALBSecurityGroup
+  albSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: ALB-sg
+      GroupDescription: "Allow HTTP Port"
+      VpcId: !ImportValue vpc-id
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Ref InfraName
+        - Key: Project
+          Value: !Sub ${ProjectName}-alb-sg
+  # ec2SecurityGroup
+  ec2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: EC2-Server-sg
+      GroupDescription: "Allow ALB SecurityGroup"
+      VpcId: !ImportValue vpc-id
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: !Ref APPPort
+          ToPort: !Ref APPPort
+          SourceSecurityGroupId: !Ref albSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Ref InfraName
+        - Key: Project
+          Value: !Sub ${ProjectName}-ec2-sg
+
+  # rdsDBSecurityGroup
+  rdsDBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: rds-DB-Server-sg
+      GroupDescription: "Allow EC2 sg 3306 Port"
+      VpcId: !ImportValue vpc-id
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3306
+          ToPort: 3306
+          SourceSecurityGroupId: !Ref ec2SecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Ref InfraName
+        - Key: Project
+          Value: !Sub ${ProjectName}-rds-sg
+
+# 外部リソースで参照するための記述
+Outputs:
+  CreateEC2sgId:
+    Description: "The ID of the created EC2 Security Group id"
+    Value: !Ref ec2SecurityGroup
+    Export:
+      Name: ec2-security-group-id
+  CreateRDSsgId:
+    Description: "The ID of the created RDS Security Group id"
+    Value: !Ref rdsDBSecurityGroup
+    Export:
+      Name: rds-security-group-id
+  CreateALBId:
+    Description: "The ID of the created ALB Security Group id"
+    Value: !Ref albSecurityGroup
+    Export:
+      Name: alb-security-group-id

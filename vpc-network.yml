@@ -1,0 +1,228 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Template for VPC Subnet RouteTable IGW VPCEndPoint S3 GateWay"
+
+  # パラメータを設定
+Parameters:
+  InfraName:
+    Type: String
+    Default: AWS-Study-CFn
+  ProjectName:
+    Type: String
+    Default: SpringBoot-sample-app
+  VPCCidrBlock:
+    Description: "Setup VPC CidrBlock"
+    Type: String
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
+    Default: 10.0.0.0/16
+  PublicSubnetCidrBlockAZ1a:
+    Description: "Setup PublicSubnet CidrBlock AZ1a"
+    Type: String
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
+    Default: 10.0.0.0/20
+  PublicSubnetCidrBlockAZ1c:
+    Description: "Setup PublicSubnet CidrBlock AZ1c"
+    Type: String
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
+    Default: 10.0.16.0/20
+  PrivateSubnetCidrBlockAZ1a:
+    Description: "Setup PrivateSubnet CidrBlock AZ1a"
+    Type: String
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
+    Default: 10.0.128.0/20
+  PrivateSubnetCidrBlockAZ1c:
+    Description: Setup PrivateSubnet CidrBlock AZ1c
+    Type: String
+    AllowedPattern: '^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-6]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$'
+    Default: 10.0.144.0/20
+
+Resources:
+  # VPCを作成
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VPCCidrBlock
+      InstanceTenancy: default
+      EnableDnsHostnames: "true"
+      EnableDnsSupport: "true"
+      Tags:
+        - Key: Name
+          Value: !Sub ${InfraName}-vpc
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # IGWの作成
+  VPCInternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${InfraName}-igw
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # VPCにIGWをアタッチ
+  VPCInternetGatewayAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref VPCInternetGateway
+      VpcId: !Ref VPC
+
+  # サブネットの作成
+  # パブリックサブネット 2つ作成
+  PublicSubnetAZ1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [ 0, !GetAZs ]
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnetCidrBlockAZ1a
+      MapPublicIpOnLaunch: "true"
+      Tags:
+        - Key: Name
+          Value: !Sub ${InfraName}-PublicSubnet-AZ-1a
+        - Key: Project
+          Value: !Ref ProjectName
+
+  PublicSubnetAZ1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [ 1, !GetAZs ]
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PublicSubnetCidrBlockAZ1c
+      MapPublicIpOnLaunch: "true"
+      Tags:
+        - Key: Name
+          Value: !Sub ${InfraName}-PublicSubnet-AZ-1c
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # プライベートサブネット2つ 作成
+  PrivateSubnetAZ1a:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [ 0, !GetAZs ]
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnetCidrBlockAZ1a
+      Tags:
+        - Key: Name
+          Value: !Sub ${InfraName}-PrivateSubnetAZ1a
+        - Key: Project
+          Value: !Ref ProjectName
+
+  PrivateSubnetAZ1c:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select [ 1, !GetAZs ]
+      VpcId: !Ref VPC
+      CidrBlock: !Ref PrivateSubnetCidrBlockAZ1c
+      Tags:
+        - Key: Name
+          Value: !Sub ${InfraName}-PrivateSubnetAZ1c
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # パブリックサブネット用のルートテーブルの作成
+  RouteTablePublic:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${InfraName}-RouteTablePublic
+        - Key: Project
+          Value: !Ref ProjectName
+  # IGWへのルーティング
+  RouteTablePublicIGW:
+    Type: AWS::EC2::Route
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref VPCInternetGateway
+      RouteTableId: !Ref RouteTablePublic
+
+  # パブリックサブネットに紐付け
+  RouteTableAssociationPublic1a:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      SubnetId: !Ref PublicSubnetAZ1a
+
+  RouteTableAssociationPublic1c:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      SubnetId: !Ref PublicSubnetAZ1c
+
+  # プライベートサブネットへのルートテーブルの作成
+  RouteTablePrivate1a:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${InfraName}-RouteTablePrivate1a
+        - Key: Project
+          Value: !Ref ProjectName
+  RouteTablePrivate1c:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${InfraName}-RouteTablePrivate1c
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # プライベートサブネットに紐付け
+  RouteTableAssociationPrivate1a:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate1a
+      SubnetId: !Ref PrivateSubnetAZ1a
+
+  RouteTableAssociationPrivate1c:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref RouteTablePrivate1c
+      SubnetId: !Ref PrivateSubnetAZ1c
+
+  # VPCエンドポイントの作成　S3ゲートウェイエンドポイント
+  S3GatewayEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VPC
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.s3
+      VpcEndpointType: Gateway
+      RouteTableIds:
+        - !Ref RouteTablePrivate1a
+        - !Ref RouteTablePrivate1c
+      Tags:
+        - Key: Name
+          Value: !Sub ${InfraName}-VPCEndPoint-S3Gateway
+        - Key: Project
+          Value: !Ref ProjectName
+  # 外部リソースで参照するための記述
+Outputs:
+  CreateVPCId:
+    Description: "The ID of the created VPC Group"
+    Value: !Ref VPC
+    Export:
+      Name: vpc-id
+  CreatePublicSubnetAZ1aId:
+    Description: "The ID of the created PublicSubnet1a"
+    Value: !Ref PublicSubnetAZ1a
+    Export:
+      Name: public-subnet-az-1a
+  CreatePublicSubnetAZ1cId:
+    Description: "The ID of the created PublicSubnet1c"
+    Value: !Ref PublicSubnetAZ1c
+    Export:
+      Name: public-subnet-az-1c
+  CreatePrivateSubnetAZ1aId:
+    Description: "The ID of the created PrivateSubnet1a"
+    Value: !Ref PrivateSubnetAZ1a
+    Export:
+      Name: private-subnet-az-1a
+  CreatePrivateSubnetAZ1cId:
+    Description: "The ID of the created PrivateSubnet1c"
+    Value: !Ref PrivateSubnetAZ1c
+    Export:
+      Name: private-subnet-az-1c
