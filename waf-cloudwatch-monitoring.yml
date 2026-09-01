@@ -46,8 +46,17 @@ Resources:
         - Key: Project
           Value: !Ref ProjectName
 
+# ログ記録送信先はCloudWatchLogsで管理
+  WafLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub aws-waf-logs-${AWS::StackName}-group #必ず aws-waf-logsから始まるグループ名で設定
+      RetentionInDays: 30 # ログの保持期間（任意で変更してください）
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+
 # WAFの設定 ALBにWAF（ファイアウォールの設定）をし、CloudWatchLogsに集約しメトリクスを参照できるようにする
-  WAFwebACL:
+  WAFWebACL:
     Type: AWS::WAFv2::WebACL
     Properties:
       Name: ALB-Web-ACL
@@ -71,3 +80,11 @@ Resources:
             CloudWatchMetricsEnabled: true
             MetricName: 'CoreRuleSetMetric'
             SampledRequestsEnabled: true
+
+# WebACLとCloudWatchLogsと関連づけ
+  WafLoggingConfiguration:
+    Type: AWS::WAFv2::LoggingConfiguration
+    Properties:
+      ResourceArn: !GetAtt WAFWebACL.Arn
+      LogDestinationConfigs:
+        - !GetAtt WafLogGroup.Arn
