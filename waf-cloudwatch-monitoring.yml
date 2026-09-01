@@ -47,3 +47,27 @@ Resources:
           Value: !Ref ProjectName
 
 # WAFの設定 ALBにWAF（ファイアウォールの設定）をし、CloudWatchLogsに集約しメトリクスを参照できるようにする
+  WAFwebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: ALB-Web-ACL
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: ALBWebACLMetric # ハイフン不可。英数字のみ
+        SampledRequestsEnabled: true
+      Rules:
+        - Name: 'AWSManagedRulesCommonRuleSet'
+          Priority: 1
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: 'AWS'
+              Name: 'AWSManagedRulesCommonRuleSet'
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: 'CoreRuleSetMetric'
+            SampledRequestsEnabled: true
