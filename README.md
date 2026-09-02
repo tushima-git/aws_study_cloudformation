@@ -2,7 +2,7 @@
 awsでSpringBootアプリのインフラ環境を構築します
 
 ## 1. システム構成図 (Architecture)
-![Architecture Diagram](./aws_architecture_diagram_2.svg)
+![Architecture Diagram](./images/aws_architecture_diagram_2.svg)
 
 ## 2. 構築される主要リソース (Resources)
 このテンプレートによって、以下のAWSリソースが構築されます
