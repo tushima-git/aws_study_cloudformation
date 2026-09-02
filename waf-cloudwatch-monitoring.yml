@@ -83,6 +83,11 @@ Resources:
             CloudWatchMetricsEnabled: true
             MetricName: CoreRuleSetMetric
             SampledRequestsEnabled: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${InfraName}-WAFWebACL
+        - Key: Project
+          Value: !Ref ProjectName
 
   # WebACLとCloudWatchLogsと関連づけ
   WafLoggingConfiguration:
