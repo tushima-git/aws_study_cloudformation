@@ -21,9 +21,10 @@ Parameters:
   PreCreatedTopicName:
     Type: String
     Default: "ec2-CPUUtilization"
+
 Resources:
-# ec2の「1分間あたりのCPU使用率が70％以上が1回測定される状態」になったらアラートを出すようにCloudWatchを設定
-# SNSトピックを作成し、登録したメールに通知が届くようにする（サブスクリプションのメールアドレス登録は事前に設定）
+  # ec2の「1分間あたりのCPU使用率が70％以上が1回測定される状態」になったらアラートを出すようにCloudWatchを設定
+  # SNSトピックを作成し、登録したメールに通知が届くようにする（サブスクリプションのメールアドレス登録は事前に設定）
   CPUAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -50,12 +51,14 @@ Resources:
   WafLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub aws-waf-logs-${AWS::StackName}-group #必ず aws-waf-logsから始まるグループ名で設定
-      RetentionInDays: 30 # ログの保持期間（任意で変更してください）
+      # 必ず aws-waf-logsから始まるグループ名で設定
+      LogGroupName: !Sub aws-waf-logs-${AWS::StackName}-group
+      # ログの保持期間（デフォルトでは無制限だが、WebACLのコスト減のため変更）
+      RetentionInDays: 30
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
 
-# WAFの設定 ALBにWAF（ファイアウォールの設定）をし、CloudWatchLogsに集約しメトリクスを参照できるようにする
+  # WAFの設定 ALBにWAF（ファイアウォールの設定）をし、CloudWatchLogsに集約しメトリクスを参照できるようにする
   WAFWebACL:
     Type: AWS::WAFv2::WebACL
     Properties:
@@ -65,15 +68,15 @@ Resources:
         Allow: {}
       VisibilityConfig:
         CloudWatchMetricsEnabled: true
-        MetricName: ALBWebACLMetric # ハイフン不可。英数字のみ
+        MetricName: ALBWebACLMetric
         SampledRequestsEnabled: true
       Rules:
-        - Name: 'AWSManagedRulesCommonRuleSet'
+        - Name: AWSManagedRulesCommonRuleSet
           Priority: 1
           Statement:
             ManagedRuleGroupStatement:
-              VendorName: 'AWS'
-              Name: 'AWSManagedRulesCommonRuleSet'
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
           OverrideAction:
             None: {}
           VisibilityConfig:
@@ -81,10 +84,17 @@ Resources:
             MetricName: 'CoreRuleSetMetric'
             SampledRequestsEnabled: true
 
-# WebACLとCloudWatchLogsと関連づけ
+  # WebACLとCloudWatchLogsと関連づけ
   WafLoggingConfiguration:
     Type: AWS::WAFv2::LoggingConfiguration
     Properties:
       ResourceArn: !GetAtt WAFWebACL.Arn
       LogDestinationConfigs:
         - !GetAtt WafLogGroup.Arn
+
+  # ALBへのWebACL紐付け
+  WafWebACLAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn: !ImportValue alb-loadbalancer-arn
+      WebACLArn: !GetAtt WAFWebACL.Arn
