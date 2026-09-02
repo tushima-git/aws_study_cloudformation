@@ -81,7 +81,7 @@ Resources:
             None: {}
           VisibilityConfig:
             CloudWatchMetricsEnabled: true
-            MetricName: 'CoreRuleSetMetric'
+            MetricName: CoreRuleSetMetric
             SampledRequestsEnabled: true
 
   # WebACLとCloudWatchLogsと関連づけ
