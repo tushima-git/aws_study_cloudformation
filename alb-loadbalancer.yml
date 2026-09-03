@@ -68,3 +68,11 @@ Resources:
       LoadBalancerArn: !Ref ALBLoadBalancer
       Port: 80
       Protocol: HTTP
+
+Outputs:
+  CreateALBLoadBalancerArn:
+    Description: "The Arn of the created ALB LoadBalancer"
+    # Value: !Ref ALBLoadBalancer
+    Value: !GetAtt ALBLoadBalancer.LoadBalancerArn
+    Export:
+      Name: alb-loadbalancer-arn

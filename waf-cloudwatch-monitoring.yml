@@ -1,0 +1,108 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Template for CloudWatch CPUUtilization and WAF"
+
+  # パラメータを設定
+Parameters:
+  InfraName:
+    Type: String
+    Default: AWS-Study-CFn
+  ProjectName:
+    Type: String
+    Default: SpringBoot-sample-app
+  Period:
+    Type: Number
+    Default: 60
+  EvaluationPeriods:
+    Type: Number
+    Default: 1
+  Threshold:
+    Type: Number
+    Default: 70
+# パラメータストアからSNSトピックのARNを自動取得する設定
+  TopicArn:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: '/SpringBoot-sample-app/AWS-Study-CFn/sns-topic-arn' # 保存したパスを指定
+
+
+Resources:
+  # ec2の「1分間あたりのCPU使用率が70％以上が1回測定される状態」になったらアラートを出すようにCloudWatchを設定
+  # SNSトピックを作成し、登録したメールに通知が届くようにする（サブスクリプションのメールアドレス登録は事前に設定）
+  CPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: CPU alarm for my instance
+      MetricName: CPUUtilization
+      Namespace: AWS/EC2
+      Statistic: Average
+      Period: !Ref Period
+      EvaluationPeriods: !Ref EvaluationPeriods
+      Threshold: !Ref Threshold
+      ComparisonOperator: GreaterThanThreshold
+      Dimensions:
+      - Name: InstanceId
+        Value: !ImportValue ec2-server-id
+      AlarmActions:
+      - !Ref TopicArn
+      Tags:
+        - Key: Name
+          Value: !Sub ${InfraName}-CloudWatch-CPUUtilization-Alert
+        - Key: Project
+          Value: !Ref ProjectName
+
+# ログ記録送信先はCloudWatchLogsで管理
+  WafLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      # 必ず aws-waf-logsから始まるグループ名で設定
+      LogGroupName: !Sub aws-waf-logs-${AWS::StackName}-group
+      # ログの保持期間（デフォルトでは無制限だが、WebACLのコスト減のため変更）
+      RetentionInDays: 30
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Delete
+
+  # WAFの設定 ALBにWAF（ファイアウォールの設定）をし、CloudWatchLogsに集約しメトリクスを参照できるようにする
+  WAFWebACL:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      Name: ALB-Web-ACL
+      Scope: REGIONAL
+      DefaultAction:
+        Allow: {}
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: ALBWebACLMetric
+        SampledRequestsEnabled: true
+      Rules:
+        - Name: AWSManagedRulesCommonRuleSet
+          Priority: 1
+          Statement:
+            ManagedRuleGroupStatement:
+              VendorName: AWS
+              Name: AWSManagedRulesCommonRuleSet
+          OverrideAction:
+            None: {}
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: CoreRuleSetMetric
+            SampledRequestsEnabled: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${InfraName}-WAFWebACL
+        - Key: Project
+          Value: !Ref ProjectName
+
+  # WebACLとCloudWatchLogsと関連づけ
+  WafLoggingConfiguration:
+    Type: AWS::WAFv2::LoggingConfiguration
+    DependsOn: WafLogGroup
+    Properties:
+      ResourceArn: !GetAtt WAFWebACL.Arn
+      LogDestinationConfigs:
+        - !GetAtt WafLogGroup.Arn
+
+  # ALBへのWebACL紐付け
+  WafWebACLAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn: !ImportValue alb-loadbalancer-arn
+      WebACLArn: !GetAtt WAFWebACL.Arn

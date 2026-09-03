@@ -2,7 +2,7 @@
 awsでSpringBootアプリのインフラ環境を構築します
 
 ## 1. システム構成図 (Architecture)
-![Architecture Diagram](./aws-architecture-diagram.svg)
+![Architecture Diagram](./images/aws_architecture_diagram_2.svg)
 
 ## 2. 構築される主要リソース (Resources)
 このテンプレートによって、以下のAWSリソースが構築されます
@@ -12,12 +12,27 @@ awsでSpringBootアプリのインフラ環境を構築します
 - **Database:** Amazon RDS (MySQL Multi-AZ)
 - **RoadBalancer:** Application LoadBalancer
 - **Security:** IAM Roles(EC2にSSMでログイン,RDSの拡張モニタリング有効化の設定), Security Groups(EC2 RDS ALB) Secrets Manager(DBログインパスワード管理) 
+- **Monitoring & Alerting:**
+  CloudWatch EC2のCPU使用率(`CPUUtilization`)に対して設定　評価条件: 1分間の平均CPU使用率が 70% 以上の状態が 1回 測定された場合 アラートを検知。
+  Amazon SNS アラート検知時に、登録済みのメールアドレスへ通知を配信。
+
+  AWS WAF (WebACL)
+  (ALB連携)　デフォルトアクション: Allow（許可）
+  マネージドールール: `AWSManagedRulesCommonRuleSet`（一般的なWeb脆弱性対策）を適用。
+  CloudWatch Logs: WAFのアクセスログを出力するための専用ロググループ (`aws-waf-logs-...`) を作成（保持期間: 30日等に設定）。
+
+  メトリクス連携: CloudWatch Metricsを有効化し、WebACL全体および個別ルールの検知状況をグラフやダッシュボードで視覚的に確認できるように設定。
+  リソース紐付け
+    WAFのLogging Configurationにより、WebACLのログをCloudWatch Logsへ転送。
+    WAF WebACL Associationにより、対象のALBにWAFを紐付け。
 
 ## 3. 前提条件 (Prerequisites)
 スタックの作成を実行する前に、以下の準備が必要です。
 
 * **アクセス権限:** `AdministratorAccess` または該当リソースの作成権限を持つIAMロール/ユーザー
 * （現場でコンソール画面の操作権限がない方）**AWS CLI:** バージョン 2.x 以上
+* Amazon SNS トピックを作成。サブスクリプションにて、通知を送りたいメールアドレスを付与。CloudWatchにてアラートを検知したら、通知する用途で使用。
+* パラメータストアにSNSトピックのARNと指定パス(今回は、`/SpringBoot-sample-app/AWS-Study-CFn/sns-topic-arn`)を事前に設定
 
 ## 4. AWS CLIの操作実行例
 AWS CLIを使用してスタックの作成を行うコマンド例です。
