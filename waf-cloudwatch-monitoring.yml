@@ -18,9 +18,11 @@ Parameters:
   Threshold:
     Type: Number
     Default: 70
-  PreCreatedTopicName:
-    Type: String
-    Default: "ec2-CPUUtilization"
+# パラメータストアからSNSトピックのARNを自動取得する設定
+  TopicArn:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: '/SpringBoot-sample-app/AWS-Study-CFn/sns-topic-arn' # 保存したパスを指定
+
 
 Resources:
   # ec2の「1分間あたりのCPU使用率が70％以上が1回測定される状態」になったらアラートを出すようにCloudWatchを設定
@@ -40,7 +42,7 @@ Resources:
       - Name: InstanceId
         Value: !ImportValue ec2-server-id
       AlarmActions:
-      - !Sub 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${PreCreatedTopicName}'
+      - !Ref TopicArn
       Tags:
         - Key: Name
           Value: !Sub ${InfraName}-CloudWatch-CPUUtilization-Alert
@@ -92,6 +94,7 @@ Resources:
   # WebACLとCloudWatchLogsと関連づけ
   WafLoggingConfiguration:
     Type: AWS::WAFv2::LoggingConfiguration
+    DependsOn: WafLogGroup
     Properties:
       ResourceArn: !GetAtt WAFWebACL.Arn
       LogDestinationConfigs:
