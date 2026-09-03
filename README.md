@@ -32,6 +32,7 @@ awsでSpringBootアプリのインフラ環境を構築します
 * **アクセス権限:** `AdministratorAccess` または該当リソースの作成権限を持つIAMロール/ユーザー
 * （現場でコンソール画面の操作権限がない方）**AWS CLI:** バージョン 2.x 以上
 * Amazon SNS トピックを作成。サブスクリプションにて、通知を送りたいメールアドレスを付与。CloudWatchにてアラートを検知したら、通知する用途で使用。
+* パラメータストアにSNSトピックのARNと指定パス(今回は、`/SpringBoot-sample-app/AWS-Study-CFn/sns-topic-arn`)を事前に設定
 
 ## 4. AWS CLIの操作実行例
 AWS CLIを使用してスタックの作成を行うコマンド例です。
